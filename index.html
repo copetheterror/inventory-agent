@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Agent Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 650px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        textarea {
+            width: 100%;
+            height: 80px;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            align-self: flex-start;
+        }
+        button:disabled {
+            background-color: #94c2f5;
+            cursor: not-allowed;
+        }
+        .output-box {
+            margin-top: 10px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            min-height: 100px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Inventory Agent Assistant</h2>
+
+    <div class="container">
+        <label for="user-input"><strong>Enter your question:</strong></label>
+        <textarea id="user-input" placeholder="e.g., What is the stock level of Mechanical Keyboard?"></textarea>
+        
+        <button id="send-btn" onclick="sendQuery()">Ask Agent</button>
+
+        <label><strong>Agent Response:</strong></label>
+        <div id="response-output" class="output-box">Your response will appear here...</div>
+    </div>
+
+    <script>
+        async function sendQuery() {
+            const inputField = document.getElementById("user-input");
+            const outputBox = document.getElementById("response-output");
+            const sendBtn = document.getElementById("send-btn");
+
+            const queryText = inputField.value.trim();
+            if (!queryText) return;
+
+            // Update UI state during fetch
+            outputBox.innerText = "Querying agent...";
+            sendBtn.disabled = true;
+
+            try {
+                // Change host/port if deployed externally (e.g., https://your-domain.com/api/chat)
+                const response = await fetch("http://localhost:8000/api/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ prompt: queryText })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server returned status ${response.status}`);
+                }
+
+                const data = await response.json();
+                outputBox.innerText = data.response;
+            } catch (error) {
+                console.error("Error calling agent API:", error);
+                outputBox.innerText = "Error: Could not retrieve data from the inventory agent server.";
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+    </script>
+
+</body>
+</html>
